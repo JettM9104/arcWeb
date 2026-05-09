@@ -1,0 +1,322 @@
+================================================================================
+  AMATEUR RADIO CANADA — PROJECT SUMMARY
+  Generated: 2026-05-08
+================================================================================
+
+PROJECT OVERVIEW
+----------------
+Name:       Amateur Radio Canada
+Type:       iOS SwiftUI App (Xcode project)
+Created:    2026-04-23 by Jett Mu
+Bundle ID:  ca.hamradio (inferred from UserDefaults/iCloud keys)
+Platform:   iOS (SwiftUI, MapKit, CoreLocation)
+Accent:     Orange throughout
+
+A Canadian ham radio companion app built for licensed amateur radio operators.
+It covers Canadian band plans, repeater management, bearing/distance measurement,
+live band condition data, and a quick reference guide — all in one tabbed interface.
+
+--------------------------------------------------------------------------------
+
+TAB STRUCTURE (ContentView.swift)
+----------------------------------
+Five tabs, all orange-tinted:
+
+  1. Band Plans     — dot.radiowaves.left.and.right
+  2. Repeaters      — antenna.radiowaves.left.and.right
+  3. Bearing        — location.north.fill
+  4. Conditions     — sun.max.fill
+  5. Quick Ref      — book.closed.fill
+
+On first launch, a full-screen IntroView is shown (dismissed with "I agree"),
+then never shown again (UserDefaults key "hasSeenIntro").
+
+--------------------------------------------------------------------------------
+
+TAB 1: BAND PLANS (BandPlansView.swift + BandData.swift + Models.swift)
+------------------------------------------------------------------------
+Displays Canadian frequency allocations per RAC / ISED RBR-4 Schedule I,
+Issue 3, July 2022.
+
+Layout: NavigationSplitView — sidebar list on left, detail on right.
+
+Sidebar sections:
+  - LF / MF  (2200m, 630m)
+  - HF       (160m, 80m, 60m, 40m, 30m, 20m, 17m, 15m, 12m, 10m)
+  - VHF / UHF / Microwave
+               (6m, 2m, 1.35m, 70cm, 33cm, 23cm, 13cm, 9cm, 6cm, 3cm, 24 GHz)
+
+Each band row shows:
+  - Colour-coded category strip (LF=mint, MF=teal, HF=blue, VHF=green,
+    UHF=orange, Microwave=purple)
+  - Short name + frequency range (monospaced)
+  - Licence badge (BASIC / BASIC+ / ADV) colour-coded green/blue/orange
+
+Detail view per band:
+  - Band header: frequency range, licence class pill, category pill, max power
+  - FrequencyBarView: proportional colour bar of subbands — tappable segments
+  - Mode legend: FlowLayout of mode colour swatches
+  - Subband table: range, mode tags (colour pills), expandable notes
+  - Key Frequencies section (calling/emergency freqs with NATIONAL badge)
+  - Notes & Restrictions section
+
+Mode colours (consistent across entire app):
+  CW=blue, Digital/RTTY/Data=green, Phone/SSB=orange, AM=yellow, FM=orange-red,
+  Image/SSTV=purple, Beacon=cyan, Satellite=red, ATV=pink, EME=purple,
+  Packet=green, APRS=teal, Unallocated=dark grey
+
+Data model: BandPlan → [Subband], [CallingFreq], [String notes], category
+All band data is hardcoded in BandData.swift.
+
+--------------------------------------------------------------------------------
+
+TAB 2: REPEATERS (RepeatersView.swift + RepeaterStore.swift +
+                   KeyFrequencyStore.swift + Models.swift)
+---------------------------------------------------------------
+Manages a list of Canadian repeaters plus personal key frequencies.
+
+FILTERING
+  - Search bar: matches callsign, city/location, name/label
+  - Band chips: All / 6m / 2m / 70cm / 33cm / 23cm
+  - Province menu: All 13 Canadian provinces/territories
+  - Tag chips: Analogue / DMR / D-STAR / Fusion / EchoLink / AllStar /
+               P25 / NXDN / APRS / WIRES-X
+
+DISPLAY MODES
+  - List view (default): Key Frequency cards + Repeater cards
+  - Map view (toggle): RepeaterMapView with MKMap, pins, bearing lines
+
+REPEATER CARD shows:
+  - Callsign (orange monospaced), name, reference code badge
+  - Operating mode badge, band badge, province badge
+  - Output / Offset / Input frequencies (or SIMPLEX if no offset)
+  - STD badge when offset matches band standard
+  - CTCSS/DCS tone or "Carrier Squelch"
+  - City, Province, map pin icon (filled if coordinates present)
+  - Bearing arrow + distance (when location enabled)
+  - Technology tags (colour-coded)
+  - Notes
+
+KEY FREQUENCY CARD shows:
+  - Star icon, label, reference code, band badge, province badge
+  - Large frequency display + MHz, mode badge
+  - Notes
+
+REPEATER MAP VIEW
+  - Centred on Canada (55°N, 96°W), zoom covers the country
+  - Orange dashed great-circle lines to each repeater (when bearing on)
+  - Antenna pin annotations; tap to see callout with freq/offset/tone/bearing
+  - Tap map (bearing mode on) to place a blue custom target — shows bearing
+    and distance to that tap point
+  - CoordinatePickerView: separate sheet with tap-to-place-pin map for
+    assigning coordinates when editing a repeater
+
+ADD / EDIT REPEATER SHEET (AddEditRepeaterView):
+  - Callsign (auto-uppercase), name, operating mode
+  - Simplex toggle / output frequency / auto-default offset / custom offset
+  - Tone type: None / CTCSS (picker from 38 standard tones) / DCS (101 codes)
+  - Reference code (up to 3 digits)
+  - City (required) + Province/Territory picker
+  - Precise location via CoordinatePickerView map sheet
+  - Technology tags (multi-select)
+  - Notes
+  - Delete button (edit mode)
+
+ADD / EDIT KEY FREQUENCY SHEET (AddEditKeyFrequencyView):
+  - Label, frequency (MHz), operating mode
+  - Reference code (up to 3 digits)
+  - Province/Territory (optional)
+  - Notes
+
+SWIPE ACTIONS: Delete (destructive) + Edit on both card types.
+
+RESET TO DEFAULTS: replaces all repeaters with the preloaded Canadian list
+  (BandPlanData.preloadedRepeaters) via confirmation dialog.
+
+DATA PERSISTENCE
+  RepeaterStore & KeyFrequencyStore both:
+  - Encode to JSON → UserDefaults (primary)
+  - Mirror to NSUbiquitousKeyValueStore (iCloud KV) when iCloud is available
+  - Listen for external iCloud changes and reload automatically
+  Keys: "ca.hamradio.repeaters" and "ca.hamradio.keyfrequencies"
+
+TOOLBAR
+  - Map/List toggle button
+  - Bearing toggle button (requests location; orange when active)
+  - Ellipsis menu: Add Repeater / Add Key Frequency / Reset to Defaults
+  - Plus button: quick Add Repeater
+
+--------------------------------------------------------------------------------
+
+TAB 3: BEARING TOOL (BearingMapView.swift + LocationManager.swift +
+                      ElevationService.swift)
+----------------------------------------------------------------------
+A dedicated geodesic bearing and distance calculator.
+
+MAP: Realistic elevation style, Canada-centred.
+  - UserAnnotation shows your location
+  - Tap anywhere (with location) to drop a blue target marker
+  - Blue dashed great-circle line from user to target
+
+BEARING CARD (shown at bottom after tap):
+  - TO TARGET bearing (degrees, blue compass arrow)
+  - BACK BEARING (reciprocal +180°, orange compass arrow)
+  - Distance in km (geodesic great-circle)
+  - Elevation section (if GPS altitude available):
+      YOUR ALT (from GPS, when verticalAccuracy > 0)
+      TARGET ALT (fetched async from open-meteo.com API)
+      ELEV ANGLE (elevation angle in degrees, +/-)
+
+HINT CARD: shown before a target is tapped; changes based on location
+permission state (denied / waiting / ready).
+
+LOCATION MANAGER (LocationManager.swift):
+  - CLLocationManager, accuracy 100 m
+  - Publishes: location (CLLocation?), authorizationStatus
+  - requestAndStart(): requests permission if needed, then starts updates
+  - isDenied: denied or restricted
+
+GEO MATH UTILITIES (in LocationManager.swift):
+  - bearingDegrees(from:to:) — forward azimuth using haversine
+  - distanceKm(from:to:) — CLLocation.distance / 1000
+  - greatCircleCoordinates(from:to:steps:24) — interpolates 25-point arc for
+    MapPolyline so lines curve correctly on Mercator maps
+
+ELEVATION API (ElevationService.swift):
+  - GET https://api.open-meteo.com/v1/elevation?latitude=X&longitude=Y
+  - Returns first elevation value in metres
+  - Called async/throws; failures are silently swallowed (targetElevationM stays nil)
+
+--------------------------------------------------------------------------------
+
+TAB 4: BAND CONDITIONS (BandConditionsView.swift)
+--------------------------------------------------
+Live solar / propagation data for amateur radio operators.
+
+DATA SOURCE: https://www.hamqsl.com/solarxml.php (HamQSL.com XML feed)
+  Fetched on appear + manual refresh button; 15-second timeout.
+  Results cached in UserDefaults ("ca.hamradio.bandconditions.cache")
+  and shown stale with a notice while fresh data loads.
+
+SOLAR INDEX CARD (3-column grid):
+  - SFI (Solar Flux Index) — green ≥150, yellow ≥100, orange otherwise
+  - A-Index (geomagnetic) — green ≤7, yellow ≤15, orange ≤30, red >30
+  - K-Index — green ≤1, yellow ≤3, orange ≤5, red >5
+  - Sunspots — orange
+  - X-Ray class — green (A/B), yellow (C), orange (M), red (X)
+  - Solar Wind (km/s) — blue
+
+HF CONDITIONS CARD:
+  - Table of HF bands from the XML with day/night condition pills
+  - Condition colours: Good=green, Fair=yellow, Poor=orange, None=red
+
+VHF / SPORADIC E CARD:
+  - Sporadic E conditions for 10m, 6m, 2m (North America)
+  - European/transatlantic E-Skip paths (if available in data)
+  - VHF Aurora + Gray Line phenomena badges
+  - 2m status derived: "Possible" if NA Es is open, else "Band Closed"
+
+XML PARSING:
+  HamQSLParser → SolarXMLDelegate (NSXMLParserDelegate)
+  Reads: updated, solarflux/sfi, aindex, kindex, sunspots, xray, solarwind
+  <calculatedconditions> → BandCondition[] (name, day, night)
+  <calculatedvhfconditions> → VHFCondition[] (name, location, status)
+
+--------------------------------------------------------------------------------
+
+TAB 5: QUICK REFERENCE (QuickReferenceView.swift)
+--------------------------------------------------
+Static reference data — no network, no state.
+
+Sections:
+  1. Emergency Frequencies (red)
+       2m national simplex 146.520 MHz, 70cm 446.000 MHz, ARES/RACES nets
+       on 80m/40m, international distress 14.300 / 14.313 MHz, 6m 52.525 MHz
+
+  2. National Calling Frequencies (orange)
+       6m through 23cm calling freqs + HF RAC national calling freqs
+       Badges: DX, NA, MONITOR
+
+  3. Digital Mode Frequencies — FT8/FT4 (green)
+       All bands 160m through 2m; most-active badges on 40m/20m
+
+  4. APRS & Packet (cyan)
+       144.390 MHz (NA), 144.800 MHz (INTL), 145.825 MHz (ISS)
+
+  5. Satellite Frequencies (purple)
+       ISS voice 145.800, ISS SSTV/Packet 437.800, satellite subbands
+
+  6. Canadian Licence Classes (scrollable horizontal cards)
+       Basic, Basic with Honours (≥80%), Advanced
+       Privileges listed per class with ISED disclaimer
+
+  7. Common Q Codes (indigo)
+       20 Q codes (QRL through QTR) with meaning and usage note
+
+--------------------------------------------------------------------------------
+
+DATA MODELS (Models.swift)
+--------------------------
+Subband        — startMHz, endMHz, modes[], label, notes
+                 computed: primaryMode, primaryColor, rangeString
+CallingFreq    — freqMHz, mode, note, isEmergency, isNational
+BandPlan       — shortName, name, startMHz, endMHz, licenseRequired,
+                 maxPower, subbands[], callingFreqs[], notes[], category
+                 computed: rangeString, licenseColor
+OperatingMode  — FM, AM, USB, LSB, DSB, CW, FT8, FT4, JS8, PSK31, RTTY, Digital
+                 each has a .color
+ToneType       — None, CTCSS, DCS
+RepeaterTag    — Analogue, DMR, D-STAR, Fusion, EchoLink, AllStar, P25, NXDN,
+                 APRS, WIRES-X (each has .color)
+Province       — All 13 Canadian provinces/territories (raw = abbreviation,
+                 fullName = full name)
+Repeater       — callsign, name, outputFreqMHz, offsetMHz, toneType, toneValue,
+                 location, province, notes, isPreloaded, tags[], mode?,
+                 latitude?, longitude?, referenceCode?
+                 computed: hasCoordinates, inputFreqMHz, bandName,
+                           outputFreqString, inputFreqString, offsetString,
+                           isDefaultOffset
+KeyFrequency   — label, frequencyMHz, notes, mode?, province?, referenceCode?
+                 computed: freqString, bandName, bandColor
+ToneData       — 38 CTCSS tones (67.0–250.3 Hz), 101 DCS codes (023–754)
+                 defaultOffset(forFreq:) — standard offsets per band
+
+Band auto-detection by outputFreqMHz:
+  6m: 50–54, 2m: 144–148, 1.25m: 220–225, 70cm: 430–450,
+  33cm: 902–928, 23cm: 1240–1300
+
+--------------------------------------------------------------------------------
+
+AUXILIARY FILES
+---------------
+ars_freq.txt    — Reference text file of amateur radio frequencies (not loaded
+                  by the app at runtime; used as source data during development)
+band_alloc.txt  — Reference text file of Canadian band allocations (same —
+                  development reference, not bundled into the app)
+
+--------------------------------------------------------------------------------
+
+ENTITLEMENTS (amateurRadioCanada.entitlements)
+----------------------------------------------
+- com.apple.developer.ubiquity-kvstore-identifier — enables iCloud KV sync
+  for repeaters and key frequencies
+
+--------------------------------------------------------------------------------
+
+ARCHITECTURE SUMMARY
+--------------------
+- Pure SwiftUI, no UIKit
+- @StateObject at ContentView root: RepeaterStore, KeyFrequencyStore,
+  LocationManager — passed via @EnvironmentObject
+- BandConditionsVM is @MainActor ObservableObject owned per-view
+- No third-party dependencies
+- All band plan data is static/hardcoded (no remote database)
+- Repeater/KeyFrequency data persists via UserDefaults + iCloud KV
+- Band conditions data fetched from HamQSL XML; cached in UserDefaults
+- Elevation data fetched from open-meteo.com (per-tap, one value)
+- Great-circle math done in pure Swift (no MapKit geodesic API)
+- FlowLayout is a custom SwiftUI Layout for wrapping mode tag chips
+
+================================================================================
+END OF SUMMARY
+================================================================================

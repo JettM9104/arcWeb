@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amateur Radio Canada — iOS App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ─── TOKENS ─── */
+    :root {
+      --bg:           #F4EFE6;
+      --bg-card:      #FAF7F1;
+      --bg-card-2:    #F0EBE0;
+      --border:       #E2D9CC;
+      --border-mid:   #CFC5B5;
+      --text:         #241E17;
+      --text-soft:    #7A6E63;
+      --text-muted:   #A89E95;
+
+      --rose:         #C47580;
+      --rose-pale:    #EFD4D8;
+      --rose-tint:    #FBF0F2;
+      --orange:       #D4703C;
+      --orange-pale:  #F0C9AE;
+      --orange-tint:  #FBF0E8;
+      --sage:         #6B9E7A;
+      --sage-pale:    #BED8C6;
+      --sage-tint:    #EEF6F1;
+      --sky:          #6B9CB8;
+      --sky-pale:     #BBDAEC;
+      --sky-tint:     #EAF4FA;
+      --lavender:     #9080B4;
+      --lavender-pale:#D4CCE8;
+      --lavender-tint:#F3F0F9;
+
+      --shadow-sm:    0 1px 3px rgba(36,30,23,.07), 0 1px 2px rgba(36,30,23,.04);
+      --shadow-md:    0 4px 16px rgba(36,30,23,.09), 0 2px 4px rgba(36,30,23,.05);
+      --shadow-lg:    0 16px 48px rgba(36,30,23,.13), 0 6px 16px rgba(36,30,23,.07);
+      --shadow-phone: 0 32px 80px rgba(36,30,23,.22), 0 8px 24px rgba(36,30,23,.12);
+
+      --r-sm: 8px;
+      --r-md: 14px;
+      --r-lg: 22px;
+      --r-xl: 36px;
+      --r-phone: 44px;
+    }
+
+    [data-theme="dark"] {
+      --bg:           #181511;
+      --bg-card:      #201D19;
+      --bg-card-2:    #161310;
+      --border:       #2E2A25;
+      --border-mid:   #3E3A34;
+      --text:         #EDE7DC;
+      --text-soft:    #9A9088;
+      --text-muted:   #6A6258;
+
+      --rose:         #D48490;
+      --rose-pale:    #5A2830;
+      --rose-tint:    #271518;
+      --orange:       #E07840;
+      --orange-pale:  #5A3020;
+      --orange-tint:  #281810;
+      --sage:         #7AAE88;
+      --sage-pale:    #1E4028;
+      --sage-tint:    #121E16;
+      --sky:          #7AB0CC;
+      --sky-pale:     #1A3A4A;
+      --sky-tint:     #0E1C24;
+      --lavender:     #A090C8;
+      --lavender-pale:#302448;
+      --lavender-tint:#18142A;
+
+      --shadow-sm:    0 1px 3px rgba(0,0,0,.35);
+      --shadow-md:    0 4px 16px rgba(0,0,0,.45);
+      --shadow-lg:    0 16px 48px rgba(0,0,0,.55);
+      --shadow-phone: 0 32px 80px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.4);
+    }
+
+    /* ─── BASE ─── */
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      transition: background .35s ease, color .35s ease;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'Playfair Display', Georgia, serif;
+      line-height: 1.15;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .9em;
+    }
+
+    img { display: block; max-width: 100%; }
+
+    /* ─── SUBTLE GRAIN OVERLAY ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+      opacity: .018;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(20px, 5vw, 80px);
+      background: color-mix(in srgb, var(--bg) 80%, transparent);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+      transition: background .35s, border-color .35s;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .nav-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      object-fit: cover;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .nav-wordmark {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -.01em;
+    }
+
+    .theme-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-soft);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .theme-btn:hover {
+      background: var(--bg-card-2);
+      border-color: var(--border-mid);
+      color: var(--text);
+    }
+
+    .theme-btn svg { transition: transform .4s ease; }
+    .theme-btn:hover svg { transform: rotate(20deg); }
+
+    /* ─── SECTION WRAPPER ─── */
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 clamp(20px, 5vw, 72px);
+    }
+
+    .divider {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 clamp(20px, 5vw, 72px);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ─── LABELS & SECTION TITLES ─── */
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+
+    .eyebrow::before {
+      content: '';
+      display: block;
+      width: 22px;
+      height: 1px;
+      background: var(--text-muted);
+    }
+
+    .section-h {
+      font-size: clamp(30px, 4.5vw, 48px);
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -.025em;
+      margin-bottom: 14px;
+    }
+
+    .section-sub {
+      font-size: 16px;
+      color: var(--text-soft);
+      line-height: 1.75;
+      max-width: 500px;
+    }
+
+    /* ─── BADGES ─── */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 13px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid;
+    }
+
+    .pill-rose     { background: var(--rose-tint);     border-color: var(--rose-pale);     color: var(--rose); }
+    .pill-orange   { background: var(--orange-tint);   border-color: var(--orange-pale);   color: var(--orange); }
+    .pill-sage     { background: var(--sage-tint);     border-color: var(--sage-pale);     color: var(--sage); }
+    .pill-sky      { background: var(--sky-tint);      border-color: var(--sky-pale);      color: var(--sky); }
+    .pill-lavender { background: var(--lavender-tint); border-color: var(--lavender-pale); color: var(--lavender); }
+
+    /* ─── PHONE FRAME ─── */
+    .phone-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    .phone-shell {
+      background: var(--text);
+      /* border-radius and padding set proportionally by JS */
+      box-shadow: var(--shadow-phone);
+      transition: background .35s;
+    }
+
+    .phone-screen {
+      /* border-radius set proportionally by JS: shell_radius - padding */
+      overflow: hidden;
+      aspect-ratio: 9 / 19.5;
+      background: #e8e8e8;
+    }
+
+    .phone-screen img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+    }
+
+    /* ─── IPAD FRAME ─── */
+    .ipad-shell {
+      background: var(--text);
+      /* border-radius and padding set proportionally by JS */
+      box-shadow: var(--shadow-phone);
+      transition: background .35s;
+    }
+
+    .ipad-screen {
+      /* border-radius set proportionally by JS */
+      overflow: hidden;
+      aspect-ratio: 4 / 3;
+      background: #e8e8e8;
+    }
+
+    .ipad-screen img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      padding: clamp(64px, 9vw, 128px) clamp(20px, 5vw, 72px);
+      max-width: 1180px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+      min-height: calc(100vh - 62px);
+    }
+
+    @media (max-width: 820px) {
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        padding-top: 56px;
+        gap: 52px;
+        text-align: center;
+      }
+      .hero-badges, .hero-cta { justify-content: center; }
+      .section-sub { max-width: 100%; }
+    }
+
+    .hero-super {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--rose-tint);
+      border: 1px solid var(--rose-pale);
+      color: var(--rose);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 26px;
+    }
+
+    .hero-h1 {
+      font-size: clamp(46px, 7vw, 80px);
+      font-weight: 700;
+      letter-spacing: -.03em;
+      line-height: 1.04;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .hero-h1-accent {
+      color: var(--rose);
+      font-style: italic;
+    }
+
+    .hero-tagline {
+      font-size: clamp(15px, 2vw, 17px);
+      color: var(--text-soft);
+      line-height: 1.75;
+      max-width: 430px;
+      margin-bottom: 32px;
+    }
+
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 40px;
+    }
+
+    .hero-cta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 26px;
+      border-radius: var(--r-md);
+      background: var(--text);
+      color: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: transform .2s, box-shadow .2s, background .35s, color .35s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: var(--r-md);
+      background: transparent;
+      color: var(--text-soft);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      transition: all .2s;
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--border-mid);
+      color: var(--text);
+    }
+
+    /* Hero phone cluster */
+    .hero-visual {
+      display: flex;
+      justify-content: center;
+      position: relative;
+    }
+
+    .phones-cluster {
+      position: relative;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .phone-back {
+      position: absolute;
+      width: 54%;
+      right: 0;
+      top: 0;
+      transform: rotate(7deg) translateY(-12px);
+      opacity: .85;
+      filter: blur(.4px);
+      z-index: 1;
+    }
+
+    .phone-front {
+      position: relative;
+      width: 62%;
+      z-index: 2;
+      margin-left: 0;
+    }
+
+    /* Decorative radio wave arcs behind phones */
+    .hero-arc {
+      position: absolute;
+      right: -30px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 280px;
+      height: 280px;
+      pointer-events: none;
+      z-index: 0;
+      opacity: .12;
+    }
+
+    /* ─── FEATURES GRID ─── */
+    .features-section {
+      padding: clamp(72px, 9vw, 112px) 0;
+    }
+
+    .features-section .wrap { }
+
+    .features-header {
+      margin-bottom: 52px;
+    }
+
+    .feature-cards {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 960px) { .feature-cards { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 580px) { .feature-cards { grid-template-columns: repeat(2, 1fr); } }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 22px 18px 24px;
+      transition: transform .25s, box-shadow .25s, border-color .25s, background .35s, border .35s;
+      cursor: default;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-mid);
+    }
+
+    .fc-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 16px;
+    }
+
+    .fc-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .fc-desc {
+      font-size: 12.5px;
+      color: var(--text-soft);
+      line-height: 1.55;
+    }
+
+    /* ─── FEATURE DETAIL SECTIONS ─── */
+    .fd-section {
+      padding: clamp(72px, 9vw, 112px) 0;
+    }
+
+    .fd-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .fd-inner.flip { direction: rtl; }
+    .fd-inner.flip > * { direction: ltr; }
+
+    @media (max-width: 820px) {
+      .fd-inner, .fd-inner.flip {
+        grid-template-columns: 1fr;
+        direction: ltr;
+        gap: 44px;
+        text-align: center;
+      }
+      .fd-points li { justify-content: flex-start; }
+      .fd-visual { justify-content: center; }
+    }
+
+    .fd-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      border: 1px solid;
+      margin-bottom: 20px;
+    }
+
+    .fd-h {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 700;
+      letter-spacing: -.025em;
+      color: var(--text);
+      margin-bottom: 16px;
+      line-height: 1.12;
+    }
+
+    .fd-desc {
+      font-size: 15px;
+      color: var(--text-soft);
+      line-height: 1.78;
+      margin-bottom: 28px;
+    }
+
+    .fd-points {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .fd-points li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13.5px;
+      color: var(--text-soft);
+      line-height: 1.55;
+    }
+
+    .fd-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-top: 7px;
+      flex-shrink: 0;
+      opacity: .75;
+    }
+
+    .fd-visual {
+      display: flex;
+      justify-content: center;
+    }
+
+    .phone-pair {
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
+    }
+
+    .phone-pair .phone-wrap { max-width: 170px; }
+    .phone-pair .phone-wrap:first-child { transform: translateY(20px); }
+
+    .phone-solo { max-width: 240px; margin: 0 auto; }
+
+    /* ─── GALLERY ─── */
+    .gallery-section {
+      padding: clamp(72px, 9vw, 112px) 0;
+      overflow: hidden;
+    }
+
+    .gallery-header {
+      margin-bottom: 40px;
+    }
+
+    .gallery-scroll {
+      display: flex;
+      gap: 18px;
+      overflow-x: auto;
+      padding: 16px clamp(20px, 5vw, 72px) 44px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+      cursor: grab;
+    }
+
+    .gallery-scroll:active { cursor: grabbing; }
+    .gallery-scroll::-webkit-scrollbar { display: none; }
+
+    .gallery-item {
+      flex-shrink: 0;
+      width: 210px;
+      scroll-snap-align: start;
+    }
+
+    /* .gallery-item .phone-shell — radius and padding both set by JS */
+
+    /* ─── IPAD SHOWCASE ─── */
+    .ipad-section {
+      padding: clamp(72px, 9vw, 112px) 0;
+    }
+
+    .ipad-inner {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: 72px;
+      align-items: center;
+    }
+
+    @media (max-width: 820px) {
+      .ipad-inner {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        text-align: center;
+      }
+    }
+
+    /* ─── TECH SECTION ─── */
+    .tech-section {
+      padding: clamp(72px, 9vw, 112px) 0;
+    }
+
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 52px;
+    }
+
+    @media (max-width: 700px) { .tech-grid { grid-template-columns: 1fr; } }
+
+    .tech-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 30px 28px;
+      transition: background .35s, border-color .35s;
+    }
+
+    .tc-icon {
+      font-size: 30px;
+      margin-bottom: 16px;
+      line-height: 1;
+    }
+
+    .tc-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 19px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .tc-desc {
+      font-size: 13.5px;
+      color: var(--text-soft);
+      line-height: 1.7;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 36px clamp(20px, 5vw, 72px);
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      transition: border-color .35s;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .footer-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    .footer-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .footer-credit {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .footer-right {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity .65s ease, transform .65s ease;
+    }
+
+    .reveal.in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .d1 { transition-delay: .08s; }
+    .d2 { transition-delay: .16s; }
+    .d3 { transition-delay: .24s; }
+    .d4 { transition-delay: .32s; }
+    .d5 { transition-delay: .40s; }
+
+    /* ─── DECORATIVE BACKGROUND BLOBS ─── */
+    .hero-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .hero-section-wrap {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .blob-1 {
+      width: 500px;
+      height: 500px;
+      background: var(--rose-tint);
+      right: -100px;
+      top: -100px;
+      opacity: .6;
+    }
+
+    .blob-2 {
+      width: 300px;
+      height: 300px;
+      background: var(--orange-tint);
+      left: -80px;
+      bottom: 100px;
+      opacity: .4;
+    }
+
+    /* Horizontal rule */
+    hr.soft {
+      border: none;
+      border-top: 1px solid var(--border);
+      transition: border-color .35s;
+    }
+
+    /* ─── WAVEFORM DECORATION ─── */
+    .freq-bar {
+      display: flex;
+      gap: 2px;
+      align-items: flex-end;
+      height: 32px;
+      margin-bottom: 28px;
+    }
+
+    .freq-bar span {
+      display: block;
+      border-radius: 2px;
+      animation: wave 1.4s ease-in-out infinite alternate;
+    }
+
+    @keyframes wave {
+      from { transform: scaleY(.4); }
+      to   { transform: scaleY(1); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ░░ NAV ░░ -->
+<nav>
+  <a class="nav-brand" href="#">
+    <img class="nav-icon" src="app_icon.png" alt="Amateur Radio Canada icon">
+    <span class="nav-wordmark">Amateur Radio Canada</span>
+  </a>
+  <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">
+    <svg id="themeIcon" width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+      <circle cx="7.5" cy="7.5" r="3.5"/>
+      <line x1="7.5" y1="0" x2="7.5" y2="2"/><line x1="7.5" y1="13" x2="7.5" y2="15"/>
+      <line x1="0" y1="7.5" x2="2" y2="7.5"/><line x1="13" y1="7.5" x2="15" y2="7.5"/>
+      <line x1="2.2" y1="2.2" x2="3.6" y2="3.6"/><line x1="11.4" y1="11.4" x2="12.8" y2="12.8"/>
+      <line x1="12.8" y1="2.2" x2="11.4" y2="3.6"/><line x1="3.6" y1="11.4" x2="2.2" y2="12.8"/>
+    </svg>
+    <span id="themeLabel">Light</span>
+  </button>
+</nav>
+
+<!-- ░░ HERO ░░ -->
+<div class="hero-section-wrap">
+  <div class="hero-blob blob-1"></div>
+  <div class="hero-blob blob-2"></div>
+  <section class="hero">
+    <div class="hero-content reveal">
+      <div class="hero-super">
+        <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg>
+        iOS App · SwiftUI · Canada
+      </div>
+      <h1 class="hero-h1">
+        Amateur<br>Radio<br><em class="hero-h1-accent">Canada</em>
+      </h1>
+      <p class="hero-tagline">
+        The essential companion for licensed Canadian amateur radio operators — band plans, repeaters, bearing tools, live propagation data, and quick reference, all in one.
+      </p>
+      <div class="hero-badges">
+        <span class="pill pill-sky">📡 Band Plans</span>
+        <span class="pill pill-orange">🗺 Repeater Map</span>
+        <span class="pill pill-lavender">☀️ Live Conditions</span>
+        <span class="pill pill-sage">☁️ iCloud Sync</span>
+      </div>
+      <div class="hero-cta">
+        <a href="#features" class="btn-primary">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7.5 1v9M3.5 7l4 4 4-4M1 13h13"/>
+          </svg>
+          Explore Features
+        </a>
+        <a href="#screenshots" class="btn-ghost">See Screenshots</a>
+      </div>
+    </div>
+
+    <div class="hero-visual reveal d2">
+      <div class="phones-cluster">
+        <!-- Decorative radio arc -->
+        <svg class="hero-arc" viewBox="0 0 280 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M40 140 A100 100 0 0 1 240 140" stroke="currentColor" stroke-width="2" stroke-dasharray="6 5" stroke-linecap="round"/>
+          <path d="M70 140 A70 70 0 0 1 210 140"  stroke="currentColor" stroke-width="2" stroke-dasharray="6 5" stroke-linecap="round"/>
+          <path d="M100 140 A40 40 0 0 1 180 140" stroke="currentColor" stroke-width="2" stroke-dasharray="6 5" stroke-linecap="round"/>
+        </svg>
+
+        <!-- Back phone -->
+        <div class="phone-wrap phone-back">
+          <div class="phone-shell">
+            <div class="phone-screen">
+              <img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-04-24 at 20.10.19.png" alt="Band Plans detail view">
+            </div>
+          </div>
+        </div>
+        <!-- Front phone -->
+        <div class="phone-wrap phone-front">
+          <div class="phone-shell">
+            <div class="phone-screen">
+              <img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-04-24 at 20.10.10.png" alt="Band Plans list">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="divider"></div>
+
+<!-- ░░ FEATURES OVERVIEW ░░ -->
+<section class="features-section" id="features">
+  <div class="wrap">
+    <div class="features-header reveal">
+      <div class="eyebrow">Features</div>
+      <h2 class="section-h">Five tabs. Everything on the air.</h2>
+      <p class="section-sub">Built for the Canadian amateur radio community — from LF to 24 GHz, offline-capable, no ads, no account required.</p>
+    </div>
+
+    <div class="feature-cards">
+      <div class="feature-card reveal d1">
+        <div class="fc-icon" style="background:var(--sky-tint); color:var(--sky);">📶</div>
+        <div class="fc-name">Band Plans</div>
+        <div class="fc-desc">Complete Canadian allocations per RAC / ISED RBR-4, from 2200m to 24 GHz.</div>
+      </div>
+      <div class="feature-card reveal d2">
+        <div class="fc-icon" style="background:var(--orange-tint); color:var(--orange);">📡</div>
+        <div class="fc-name">Repeaters</div>
+        <div class="fc-desc">Find, filter, and manage Canadian repeaters with map and bearing lines.</div>
+      </div>
+      <div class="feature-card reveal d3">
+        <div class="fc-icon" style="background:var(--sage-tint); color:var(--sage);">🧭</div>
+        <div class="fc-name">Bearing</div>
+        <div class="fc-desc">Geodesic bearing and distance from your location to any point on the map.</div>
+      </div>
+      <div class="feature-card reveal d4">
+        <div class="fc-icon" style="background:var(--lavender-tint); color:var(--lavender);">☀️</div>
+        <div class="fc-name">Conditions</div>
+        <div class="fc-desc">Live solar indices, HF band conditions, and VHF sporadic-E from HamQSL.</div>
+      </div>
+      <div class="feature-card reveal d5">
+        <div class="fc-icon" style="background:var(--rose-tint); color:var(--rose);">📖</div>
+        <div class="fc-name">Quick Ref</div>
+        <div class="fc-desc">Emergency freqs, digital modes, satellite, Q codes, and licence classes.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ░░ BAND PLANS DETAIL ░░ -->
+<section class="fd-section">
+  <div class="wrap">
+    <div class="fd-inner">
+      <div class="reveal">
+        <div class="fd-tag" style="background:var(--sky-tint); border-color:var(--sky-pale); color:var(--sky);">
+          Tab 1 · Band Plans
+        </div>
+        <h2 class="fd-h">Every Canadian band,<br><em>precisely mapped.</em></h2>
+        <p class="fd-desc">Full Canadian frequency allocations per RAC / ISED RBR-4 Schedule I, Issue 3 — from 2200 metres to 24 GHz. Colour-coded subbands, mode legends, key calling frequencies, and licence class requirements at a glance.</p>
+        <ul class="fd-points">
+          <li><span class="fd-dot" style="background:var(--sky)"></span>LF, MF, HF, VHF, UHF, and Microwave bands in one sidebar</li>
+          <li><span class="fd-dot" style="background:var(--sky)"></span>Proportional subband frequency bars — tap to explore</li>
+          <li><span class="fd-dot" style="background:var(--sky)"></span>Calling and emergency frequencies with NATIONAL badges</li>
+          <li><span class="fd-dot" style="background:var(--sky)"></span>Licence class per band: BASIC, BASIC+, or ADVANCED</li>
+          <li><span class="fd-dot" style="background:var(--sky)"></span>Max power limits and mode restrictions clearly shown</li>
+        </ul>
+      </div>
+      <div class="fd-visual reveal d2">
+        <div class="phone-pair">
+          <div class="phone-wrap">
+            <div class="phone-shell">
+              <div class="phone-screen">
+                <img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-04-24 at 20.10.10.png" alt="Band Plans list">
+              </div>
+            </div>
+          </div>
+          <div class="phone-wrap">
+            <div class="phone-shell">
+              <div class="phone-screen">
+                <img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-04-24 at 20.10.19.png" alt="2m band detail">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ░░ REPEATERS DETAIL ░░ -->
+<section class="fd-section">
+  <div class="wrap">
+    <div class="fd-inner flip">
+      <div class="reveal">
+        <div class="fd-tag" style="background:var(--orange-tint); border-color:var(--orange-pale); color:var(--orange);">
+          Tab 2 · Repeaters
+        </div>
+        <h2 class="fd-h">Canadian repeaters,<br><em>everywhere you go.</em></h2>
+        <p class="fd-desc">A comprehensive repeater database with powerful filtering — by band, province, and technology. Flip to map view to see great-circle dashed bearing lines from your location to every repeater across Canada.</p>
+        <ul class="fd-points">
+          <li><span class="fd-dot" style="background:var(--orange)"></span>Filter by band, province, and technology (DMR, D-STAR, Fusion…)</li>
+          <li><span class="fd-dot" style="background:var(--orange)"></span>Map view with orange dashed great-circle bearing lines</li>
+          <li><span class="fd-dot" style="background:var(--orange)"></span>Add your own repeaters and personal key frequencies</li>
+          <li><span class="fd-dot" style="background:var(--orange)"></span>CTCSS (38 tones) and DCS (101 codes) support, auto offset detection</li>
+          <li><span class="fd-dot" style="background:var(--orange)"></span>iCloud KV sync keeps your data across all devices</li>
+        </ul>
+      </div>
+      <div class="fd-visual reveal d2">
+        <div class="phone-pair">
+          <div class="phone-wrap">
+            <div class="phone-shell">
+              <div class="phone-screen">
+                <img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-04-24 at 20.10.36.png" alt="Repeaters list">
+              </div>
+            </div>
+          </div>
+          <div class="phone-wrap">
+            <div class="phone-shell">
+              <div class="phone-screen">
+                <img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-05-03 at 21.46.55.png" alt="Repeater map callout">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ░░ BEARING DETAIL ░░ -->
+<section class="fd-section">
+  <div class="wrap">
+    <div class="fd-inner">
+      <div class="reveal">
+        <div class="fd-tag" style="background:var(--sage-tint); border-color:var(--sage-pale); color:var(--sage);">
+          Tab 3 · Bearing
+        </div>
+        <h2 class="fd-h">Know your heading<br><em>before you key up.</em></h2>
+        <p class="fd-desc">Tap anywhere on a realistic elevation-style map to instantly calculate geodesic bearing and great-circle distance from your GPS location. Back bearing, elevation angle, and target altitude are all in one compact card.</p>
+        <ul class="fd-points">
+          <li><span class="fd-dot" style="background:var(--sage)"></span>Forward and back bearing — reciprocal ±180° shown together</li>
+          <li><span class="fd-dot" style="background:var(--sage)"></span>Geodesic great-circle distance in kilometres</li>
+          <li><span class="fd-dot" style="background:var(--sage)"></span>Elevation angle using GPS altitude + open-meteo.com target elevation</li>
+          <li><span class="fd-dot" style="background:var(--sage)"></span>Curved 25-point arc rendered on Mercator map — no MapKit geodesic API</li>
+          <li><span class="fd-dot" style="background:var(--sage)"></span>Tap-to-place custom target marker with blue visual indicator</li>
+        </ul>
+      </div>
+      <div class="fd-visual reveal d2">
+        <div class="phone-solo phone-wrap">
+          <div class="phone-shell">
+            <div class="phone-screen">
+              <img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-05-03 at 21.47.02.png" alt="Bearing tool">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ░░ CONDITIONS + QUICK REF ░░ -->
+<section class="fd-section">
+  <div class="wrap">
+    <div class="fd-inner flip">
+      <div class="reveal">
+        <div class="fd-tag" style="background:var(--rose-tint); border-color:var(--rose-pale); color:var(--rose);">
+          Tabs 4 &amp; 5 · Conditions &amp; Quick Ref
+        </div>
+        <h2 class="fd-h">Live conditions and<br><em>instant reference.</em></h2>
+        <p class="fd-desc">Real-time solar flux, A-index, K-index, and HF band conditions from HamQSL — colour-coded for quick reading. Plus an offline quick reference covering emergencies, digital modes, satellite freqs, Q codes, and Canadian licence classes.</p>
+        <ul class="fd-points">
+          <li><span class="fd-dot" style="background:var(--rose)"></span>Solar indices: SFI, A-index, K-index, sunspots, X-ray, solar wind</li>
+          <li><span class="fd-dot" style="background:var(--rose)"></span>HF and VHF sporadic-E conditions, day and night split</li>
+          <li><span class="fd-dot" style="background:var(--rose)"></span>Emergency frequencies always offline — no network needed</li>
+          <li><span class="fd-dot" style="background:var(--rose)"></span>20 Q codes with plain-English meanings and usage notes</li>
+          <li><span class="fd-dot" style="background:var(--rose)"></span>Licence class privileges: Basic, Honours, and Advanced</li>
+        </ul>
+      </div>
+      <div class="fd-visual reveal d2">
+        <div class="phone-pair">
+          <div class="phone-wrap">
+            <div class="phone-shell">
+              <div class="phone-screen">
+                <img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-05-03 at 21.47.05.png" alt="Band Conditions">
+              </div>
+            </div>
+          </div>
+          <div class="phone-wrap">
+            <div class="phone-shell">
+              <div class="phone-screen">
+                <img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-05-03 at 21.47.07.png" alt="Quick Reference">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ░░ SCREENSHOTS GALLERY ░░ -->
+<section class="gallery-section" id="screenshots">
+  <div class="wrap gallery-header reveal">
+    <div class="eyebrow">Gallery</div>
+    <h2 class="section-h">Designed for the field.</h2>
+    <p class="section-sub">Clean, readable, and fast — in any lighting condition, on any band.</p>
+  </div>
+
+  <div class="gallery-scroll" id="galleryScroll">
+    <div class="gallery-item">
+      <div class="phone-shell"><div class="phone-screen"><img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-04-24 at 20.10.10.png" alt="Band Plans"></div></div>
+    </div>
+    <div class="gallery-item">
+      <div class="phone-shell"><div class="phone-screen"><img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-04-24 at 20.10.19.png" alt="Band Detail"></div></div>
+    </div>
+    <div class="gallery-item">
+      <div class="phone-shell"><div class="phone-screen"><img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-04-24 at 20.10.23.png" alt="Band Conditions"></div></div>
+    </div>
+    <div class="gallery-item">
+      <div class="phone-shell"><div class="phone-screen"><img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-04-24 at 20.10.36.png" alt="Repeaters"></div></div>
+    </div>
+    <div class="gallery-item">
+      <div class="phone-shell"><div class="phone-screen"><img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-04-24 at 20.10.31.png" alt="Quick Reference"></div></div>
+    </div>
+    <div class="gallery-item">
+      <div class="phone-shell"><div class="phone-screen"><img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-04-24 at 20.11.15.png" alt="Add Repeater"></div></div>
+    </div>
+    <div class="gallery-item">
+      <div class="phone-shell"><div class="phone-screen"><img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-05-03 at 21.47.02.png" alt="Bearing Tool"></div></div>
+    </div>
+    <div class="gallery-item">
+      <div class="phone-shell"><div class="phone-screen"><img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-05-03 at 21.46.55.png" alt="Repeater Map Callout"></div></div>
+    </div>
+    <div class="gallery-item">
+      <div class="phone-shell"><div class="phone-screen"><img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-05-03 at 21.47.05.png" alt="Band Conditions"></div></div>
+    </div>
+    <div class="gallery-item">
+      <div class="phone-shell"><div class="phone-screen"><img src="Simulator Screenshot - iPhone 11 Pro Max - 2026-05-03 at 21.47.07.png" alt="Quick Reference"></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ░░ IPAD SHOWCASE ░░ -->
+<section class="ipad-section">
+  <div class="wrap">
+    <div class="ipad-inner">
+      <div class="reveal">
+        <div class="eyebrow">iPad</div>
+        <h2 class="section-h">Optimised for the big screen.</h2>
+        <p class="section-sub" style="margin-bottom:24px;">The adaptive SwiftUI layout uses <span class="mono">NavigationSplitView</span> to give iPad users a full sidebar and detail pane simultaneously — every repeater, every band, side by side.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+          <span class="pill pill-sky">NavigationSplitView</span>
+          <span class="pill pill-orange">Full-width Repeater Cards</span>
+          <span class="pill pill-sage">Landscape Map View</span>
+        </div>
+      </div>
+      <div class="reveal d2">
+        <div class="ipad-shell">
+          <div class="ipad-screen">
+            <img src="Simulator Screenshot - iPad Pro 13-inch (M5) - 2026-04-24 at 20.35.13.png" alt="Amateur Radio Canada on iPad">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ░░ TECH SECTION ░░ -->
+<section class="tech-section">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">Under the Hood</div>
+      <h2 class="section-h">Built the right way.</h2>
+    </div>
+    <div class="tech-grid">
+      <div class="tech-card reveal d1">
+        <div class="tc-icon">⚡</div>
+        <div class="tc-name">Pure SwiftUI</div>
+        <div class="tc-desc">No UIKit, no third-party dependencies. Every view is native SwiftUI using <span class="mono">@StateObject</span>, <span class="mono">@EnvironmentObject</span>, and a custom <span class="mono">FlowLayout</span> for wrapping mode chips.</div>
+      </div>
+      <div class="tech-card reveal d2">
+        <div class="tc-icon">☁️</div>
+        <div class="tc-name">iCloud Sync</div>
+        <div class="tc-desc">Repeaters and key frequencies sync across devices via <span class="mono">NSUbiquitousKeyValueStore</span>, with <span class="mono">UserDefaults</span> as a fast local fallback and automatic reload on external change.</div>
+      </div>
+      <div class="tech-card reveal d3">
+        <div class="tc-icon">📐</div>
+        <div class="tc-name">Great-Circle Math</div>
+        <div class="tc-desc">Forward azimuth, reciprocal bearing, geodesic distance, and 25-point arc interpolation — all implemented in pure Swift. No MapKit geodesic API required; curves render correctly on Mercator projections.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ░░ FOOTER ░░ -->
+<footer>
+  <div class="footer-left">
+    <img class="footer-icon" src="app_icon.png" alt="Amateur Radio Canada">
+    <div>
+      <div class="footer-name">Amateur Radio Canada</div>
+      <div class="footer-credit">Built by Jett Mu · 2026</div>
+    </div>
+  </div>
+  <div class="footer-right">iOS · SwiftUI · ca.hamradio</div>
+</footer>
+
+<script>
+  /* ── THEME ── */
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    const icon = document.getElementById('themeIcon');
+    const label = document.getElementById('themeLabel');
+    if (t === 'dark') {
+      icon.innerHTML = `<path d="M13.5 7.5a6 6 0 1 1-6-6 4.5 4.5 0 0 0 6 6z" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+      label.textContent = 'Dark';
+    } else {
+      icon.innerHTML = `<circle cx="7.5" cy="7.5" r="3.5"/>
+        <line x1="7.5" y1="0" x2="7.5" y2="2"/><line x1="7.5" y1="13" x2="7.5" y2="15"/>
+        <line x1="0" y1="7.5" x2="2" y2="7.5"/><line x1="13" y1="7.5" x2="15" y2="7.5"/>
+        <line x1="2.2" y1="2.2" x2="3.6" y2="3.6"/><line x1="11.4" y1="11.4" x2="12.8" y2="12.8"/>
+        <line x1="12.8" y1="2.2" x2="11.4" y2="3.6"/><line x1="3.6" y1="11.4" x2="2.2" y2="12.8"/>`;
+      label.textContent = 'Light';
+    }
+  }
+
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('arc-theme', next);
+    applyTheme(next);
+  }
+
+  /* Initialise */
+  (function() {
+    const saved = localStorage.getItem('arc-theme');
+    const pref = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    applyTheme(saved || pref);
+  })();
+
+  /* ── SCROLL REVEAL ── */
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  /* ── GALLERY DRAG-SCROLL ── */
+  const scroll = document.getElementById('galleryScroll');
+  let isDown = false, startX, scrollLeft;
+  scroll.addEventListener('mousedown', e => { isDown = true; startX = e.pageX - scroll.offsetLeft; scrollLeft = scroll.scrollLeft; });
+  scroll.addEventListener('mouseleave', () => isDown = false);
+  scroll.addEventListener('mouseup', () => isDown = false);
+  scroll.addEventListener('mousemove', e => {
+    if (!isDown) return;
+    e.preventDefault();
+    scroll.scrollLeft = scrollLeft - (e.pageX - scroll.offsetLeft - startX);
+  });
+
+  /* ── PROPORTIONAL FRAME GEOMETRY ──
+     All values are derived from the shell's rendered width so every instance
+     (hero, feature pairs, gallery thumbnails) looks identical in proportion.
+
+     Phone ratios (iPhone 11 Pro Max reference):
+       bezel padding : 4.0% of shell width
+       corner radius : 13.5% of shell width
+       screen radius : shell_radius − padding  (concentric offset rule)
+
+     iPad Pro ratios:
+       bezel padding : 2.8% of shell width  (iPad bezels are thinner)
+       corner radius :  5.5% of shell width
+       screen radius : shell_radius − padding
+  */
+  function calibrateFrames() {
+    document.querySelectorAll('.phone-shell').forEach(shell => {
+      const w       = shell.offsetWidth;
+      const pad     = w * 0.040;
+      const shellR  = w * 0.135;
+      const screenR = Math.max(shellR - pad, 2);
+      shell.style.padding      = pad.toFixed(2) + 'px';
+      shell.style.borderRadius = shellR.toFixed(2) + 'px';
+      const screen = shell.querySelector('.phone-screen');
+      if (screen) screen.style.borderRadius = screenR.toFixed(2) + 'px';
+    });
+
+    document.querySelectorAll('.ipad-shell').forEach(shell => {
+      const w       = shell.offsetWidth;
+      const pad     = w * 0.028;
+      const shellR  = w * 0.055;
+      const screenR = Math.max(shellR - pad, 2);
+      shell.style.padding      = pad.toFixed(2) + 'px';
+      shell.style.borderRadius = shellR.toFixed(2) + 'px';
+      const screen = shell.querySelector('.ipad-screen');
+      if (screen) screen.style.borderRadius = screenR.toFixed(2) + 'px';
+    });
+  }
+
+  /* Run immediately, after images load (layout may shift), and on resize */
+  calibrateFrames();
+  window.addEventListener('load', calibrateFrames);
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(calibrateFrames, 60);
+  });
+</script>
+</body>
+</html>
